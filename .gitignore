@@ -1,5 +1,6 @@
 .DS_Store
 *.bak
+*.qws
 db
 greybox_tmp
 incremental_db
