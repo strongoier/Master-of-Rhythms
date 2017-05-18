@@ -1,9 +1,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use work.types.all;
 
 entity keyboard is --键盘模块
 	port(
-		main_state: in std_logic_vector(1 downto 0); --主模块状态输入
+		main_state: in main_state_type; --主模块状态输入
 		keyboard_data: in std_logic; --键盘数据输入
 		keyboard_clk: in std_logic; --键盘时钟输入
 		filter_clk_5M: in std_logic; --滤波5MHz时钟输入
@@ -112,7 +113,7 @@ begin
 
 	process(main_state, ok) --按键状态维护进程
 	begin
-		if main_state = "01" then --主模块RUN状态时根据读取的扫描码维护按键状态
+		if main_state = RUN then --主模块RUN状态时根据读取的扫描码维护按键状态
 			if rising_edge(ok) then
 				if last_code = x"F0" then --断码
 					case code is
