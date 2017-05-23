@@ -56,7 +56,6 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name VHDL_FILE vga.vhd
 set_global_assignment -name VHDL_FILE keyboard.vhd
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
-set_global_assignment -name QIP_FILE rom_map.qip
 set_global_assignment -name VHDL_FILE digital_7.vhd
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
 set_location_assignment PIN_AD7 -to keyboard_data
@@ -120,8 +119,6 @@ set_location_assignment PIN_AD22 -to display_7[1]
 set_location_assignment PIN_AD23 -to display_7[0]
 set_global_assignment -name VHDL_FILE types.vhd
 set_global_assignment -name VHDL_FILE serial.vhd
-set_location_assignment PIN_AD5 -to reset
-set_location_assignment PIN_AE5 -to start
 set_location_assignment PIN_U1 -to blue[2]
 set_location_assignment PIN_U2 -to blue[1]
 set_location_assignment PIN_T4 -to blue[0]
@@ -134,5 +131,7 @@ set_location_assignment PIN_R4 -to red[2]
 set_location_assignment PIN_R3 -to red[1]
 set_location_assignment PIN_R2 -to red[0]
 set_global_assignment -name QIP_FILE rom_num.qip
+set_location_assignment PIN_E20 -to rx
 set_global_assignment -name VHDL_FILE judge.vhd
+set_global_assignment -name QIP_FILE rom_map.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

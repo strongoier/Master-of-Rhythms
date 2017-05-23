@@ -6,8 +6,6 @@ use work.types.all;
 entity master_of_rhythms is --主模块
 	port(
 		clk_100M: in std_logic; --100MHz时钟输入
-		start: in std_logic; --开始游戏输入
-		reset: in std_logic; --重置输入
 		keyboard_data: in std_logic; --键盘数据输入
 		keyboard_clk: in std_logic; --键盘时钟输入
 		rx: in std_logic; --串口数据输入
@@ -103,16 +101,16 @@ architecture bhv of master_of_rhythms is
 	end component;
 	component judge is --判定模块
 		generic (
-			accept_delay: integer := 4;
-			great_dalay: integer := 2;
-			profect_dalay: integer := 1
+			accept_delay : integer := 4;
+			great_delay : integer := 2;
+			perfect_delay : integer := 1
 		);
 		port (
+			main_state : in main_state_type; --主模块状态输入
 			fclk : in std_logic; --扫描时钟
-			reset: in std_logic; --重置信号
 			next_key_time: in array_int_4; --下一待按键时刻（单位0.01秒）
 			key_state: in std_logic_vector(3 downto 0); --按键状态
-			current_time: in integer; --当前时刻（单位0.01秒）
+			current_time : in integer; --当前时刻（单位0.01秒）
 			score: out integer; --得分输出
 			result: out integer --操作结果输出
 		);
@@ -137,8 +135,6 @@ architecture bhv of master_of_rhythms is
 	signal rx_ready: std_logic; --串口成功接受新数据
 	signal rx_data: std_logic_vector(7 downto 0); --串口接受数据
 begin
-	d7: digital_7 port map("0000" + reset, display_7);
-	d6: digital_7 port map("0000" + start, display_6);
 	d4: digital_7 port map("0000" + current_time / 10000, display_4);
 	d3: digital_7 port map("0000" + current_time / 1000 mod 10, display_3);
 	d2: digital_7 port map("0000" + current_time / 100 mod 10, display_2);
@@ -160,7 +156,7 @@ begin
 	rm: rom_map port map(address_map, clk_100M, q_map);
 	rn: rom_num port map(address_pic, clk_100M, q_pic);
 	s: serial port map(clk_s, rx, rx_ready, rx_data);
-	j2: judge port map(clk_100M, reset, next_key_time, key_state_p2, current_time, score_p2, result_p2);
+	j2: judge port map(main_state, clk_100M, next_key_time, key_state_p2, current_time, score_p2, result_p2);
 
 
 	process(clk_100M) --控制进程
@@ -195,7 +191,7 @@ begin
 				if count_time = 999999 then
 					count_time <= 0;
 					current_time <= current_time + 1;
-					if current_time = 17999 then
+					if current_time = 10999 then
 						main_state <= STOP;
 					end if;
 				else

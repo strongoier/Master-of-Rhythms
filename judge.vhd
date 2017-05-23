@@ -7,12 +7,12 @@ use work.types.all;
 entity judge is --判定模块
 	generic (
 		accept_delay : integer := 4;
-		great_dalay : integer := 2;
-		profect_dalay : integer := 1
+		great_delay : integer := 2;
+		perfect_delay : integer := 1
 	);
 	port (
+		main_state : in main_state_type; --主模块状态输入
 		fclk : in std_logic; --扫描时钟
-		reset : in std_logic; --重置信号
 		next_key_time: in array_int_4; --下一待按键时刻（单位0.01秒）
 		key_state: in std_logic_vector(3 downto 0); --按键状态
 		current_time : in integer; --当前时刻（单位0.01秒）
@@ -35,19 +35,19 @@ begin
 	result <= cur_result;
 	------------------------------------------------------
 	-- 扫描、更新
-	process (reset, fclk)
+	process (main_state, fclk)
 	begin
-		if (reset = '0') then
+		if (main_state = READY) then
 			cur_index <= "00";
 			cur_score <= 0;
 			cur_result <= 0;
 			cur_judge_state <= "0000";
 			cur_key_state <= "0000";
-			cur_key_time(0) <= -1;
-			cur_key_time(1) <= -1;
-			cur_key_time(2) <= -1;
-			cur_key_time(3) <= -1;
-		elsif (rising_edge(fclk)) then
+			cur_key_time(0) <= -5;
+			cur_key_time(1) <= -5;
+			cur_key_time(2) <= -5;
+			cur_key_time(3) <= -5;
+		elsif (main_state = RUN and rising_edge(fclk)) then
 			case cur_index is
 				when "00" =>
 					cur_index <= "01";
@@ -67,20 +67,20 @@ begin
 						if (cur_judge_state(0) = '0') then
 							if (cur_key_time(0) = next_key_time(0)) then
 								cur_key_time(0) <= cur_key_time(0);
-								if ((current_time < next_key_time(0) and next_key_time(0) - current_time < profect_dalay) 
-								or (current_time > next_key_time(0) and current_time - next_key_time(0) < profect_dalay)) then
+								if ((current_time < next_key_time(0) and next_key_time(0) - current_time < perfect_delay) 
+								or (current_time >= next_key_time(0) and current_time - next_key_time(0) < perfect_delay)) then
 									cur_score <= cur_score + 5;
 									cur_result <= 5;
 									cur_judge_state(0) <= '1';
 								else
-									if ((current_time < next_key_time(0) and next_key_time(0) - current_time < great_dalay) 
-									or (current_time > next_key_time(0) and current_time - next_key_time(0) < great_dalay)) then
+									if ((current_time < next_key_time(0) and next_key_time(0) - current_time < great_delay) 
+									or (current_time >= next_key_time(0) and current_time - next_key_time(0) < great_delay)) then
 										cur_score <= cur_score + 3;
 										cur_result <= 3;
 										cur_judge_state(0) <= '1';
 									else
 										if ((current_time < next_key_time(0) and next_key_time(0) - current_time < accept_delay) 
-										or (current_time > next_key_time(0) and current_time - next_key_time(0) < accept_delay)) then
+										or (current_time >= next_key_time(0) and current_time - next_key_time(0) < accept_delay)) then
 											cur_score <= cur_score + 1;
 											cur_result <= 1;
 											cur_judge_state(0) <= '1';
@@ -139,20 +139,20 @@ begin
 						if (cur_judge_state(1) = '0') then
 							if (cur_key_time(1) = next_key_time(1)) then
 								cur_key_time(1) <= cur_key_time(1);
-								if ((current_time < next_key_time(1) and next_key_time(1) - current_time < profect_dalay) 
-								or (current_time > next_key_time(1) and current_time - next_key_time(1) < profect_dalay)) then
+								if ((current_time < next_key_time(1) and next_key_time(1) - current_time < perfect_delay) 
+								or (current_time >= next_key_time(1) and current_time - next_key_time(1) < perfect_delay)) then
 									cur_score <= cur_score + 5;
 									cur_result <= 5;
 									cur_judge_state(1) <= '1';
 								else
-									if ((current_time < next_key_time(1) and next_key_time(1) - current_time < great_dalay) 
-									or (current_time > next_key_time(1) and current_time - next_key_time(1) < great_dalay)) then
+									if ((current_time < next_key_time(1) and next_key_time(1) - current_time < great_delay) 
+									or (current_time >= next_key_time(1) and current_time - next_key_time(1) < great_delay)) then
 										cur_score <= cur_score + 3;
 										cur_result <= 3;
 										cur_judge_state(1) <= '1';
 									else
 										if ((current_time < next_key_time(1) and next_key_time(1) - current_time < accept_delay) 
-										or (current_time > next_key_time(1) and current_time - next_key_time(1) < accept_delay)) then
+										or (current_time >= next_key_time(1) and current_time - next_key_time(1) < accept_delay)) then
 											cur_score <= cur_score + 1;
 											cur_result <= 1;
 											cur_judge_state(1) <= '1';
@@ -211,20 +211,20 @@ begin
 						if (cur_judge_state(2) = '0') then
 							if (cur_key_time(2) = next_key_time(2)) then
 								cur_key_time(2) <= cur_key_time(2);
-								if ((current_time < next_key_time(2) and next_key_time(2) - current_time < profect_dalay) 
-								or (current_time > next_key_time(2) and current_time - next_key_time(2) < profect_dalay)) then
+								if ((current_time < next_key_time(2) and next_key_time(2) - current_time < perfect_delay) 
+								or (current_time >= next_key_time(2) and current_time - next_key_time(2) < perfect_delay)) then
 									cur_score <= cur_score + 5;
 									cur_result <= 5;
 									cur_judge_state(2) <= '1';
 								else
-									if ((current_time < next_key_time(2) and next_key_time(2) - current_time < great_dalay) 
-									or (current_time > next_key_time(2) and current_time - next_key_time(2) < great_dalay)) then
+									if ((current_time < next_key_time(2) and next_key_time(2) - current_time < great_delay) 
+									or (current_time >= next_key_time(2) and current_time - next_key_time(2) < great_delay)) then
 										cur_score <= cur_score + 3;
 										cur_result <= 3;
 										cur_judge_state(2) <= '1';
 									else
 										if ((current_time < next_key_time(2) and next_key_time(2) - current_time < accept_delay) 
-										or (current_time > next_key_time(2) and current_time - next_key_time(2) < accept_delay)) then
+										or (current_time >= next_key_time(2) and current_time - next_key_time(2) < accept_delay)) then
 											cur_score <= cur_score + 1;
 											cur_result <= 1;
 											cur_judge_state(2) <= '1';
@@ -283,20 +283,20 @@ begin
 						if (cur_judge_state(3) = '0') then
 							if (cur_key_time(3) = next_key_time(3)) then
 								cur_key_time(3) <= cur_key_time(3);
-								if ((current_time < next_key_time(3) and next_key_time(3) - current_time < profect_dalay) 
-								or (current_time > next_key_time(3) and current_time - next_key_time(3) < profect_dalay)) then
+								if ((current_time < next_key_time(3) and next_key_time(3) - current_time < perfect_delay) 
+								or (current_time >= next_key_time(3) and current_time - next_key_time(3) < perfect_delay)) then
 									cur_score <= cur_score + 5;
 									cur_result <= 5;
 									cur_judge_state(3) <= '1';
 								else
-									if ((current_time < next_key_time(3) and next_key_time(3) - current_time < great_dalay) 
-									or (current_time > next_key_time(3) and current_time - next_key_time(3) < great_dalay)) then
+									if ((current_time < next_key_time(3) and next_key_time(3) - current_time < great_delay) 
+									or (current_time >= next_key_time(3) and current_time - next_key_time(3) < great_delay)) then
 										cur_score <= cur_score + 3;
 										cur_result <= 3;
 										cur_judge_state(3) <= '1';
 									else
 										if ((current_time < next_key_time(3) and next_key_time(3) - current_time < accept_delay) 
-										or (current_time > next_key_time(3) and current_time - next_key_time(3) < accept_delay)) then
+										or (current_time >= next_key_time(3) and current_time - next_key_time(3) < accept_delay)) then
 											cur_score <= cur_score + 1;
 											cur_result <= 1;
 											cur_judge_state(3) <= '1';

@@ -178,32 +178,39 @@ begin
 				end if;
 			end if;
 			--计算next_key_time
-			if x >= CHANNEL_1 and x < LINE_2 then
-				if y >= 0 and y < UNDERBLOCK then
-					case q_map is
-						when "001" =>
-							next_key_time(3) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
-						when "010" =>
-							next_key_time(2) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
-						when "011" =>
-							next_key_time(1) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
-						when "100" =>
-							next_key_time(0) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
-						when others =>
-					end case;
-				elsif y >= UNDERBLOCK and y < UNDERBLOCK + CHECK_HEIGHT then
-					case q_map is
-						when "001" =>
-							next_key_time(3) <= s_current_time - ((y - UNDERBLOCK) / 4);
-						when "010" =>
-							next_key_time(2) <= s_current_time - ((y - UNDERBLOCK) / 4);
-						when "011" =>
-							next_key_time(1) <= s_current_time - ((y - UNDERBLOCK) / 4);
-						when "100" =>
-							next_key_time(0) <= s_current_time - ((y - UNDERBLOCK) / 4);
-						when others =>
-					end case;
+			if main_state = RUN then
+				if x >= CHANNEL_1 and x < LINE_2 then
+					if y >= 0 and y < UNDERBLOCK then
+						case q_map is
+							when "001" =>
+								next_key_time(3) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
+							when "010" =>
+								next_key_time(2) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
+							when "011" =>
+								next_key_time(1) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
+							when "100" =>
+								next_key_time(0) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
+							when others =>
+						end case;
+					elsif y >= UNDERBLOCK and y < UNDERBLOCK + CHECK_HEIGHT then
+						case q_map is
+							when "001" =>
+								next_key_time(3) <= s_current_time - ((y - UNDERBLOCK) / 4);
+							when "010" =>
+								next_key_time(2) <= s_current_time - ((y - UNDERBLOCK) / 4);
+							when "011" =>
+								next_key_time(1) <= s_current_time - ((y - UNDERBLOCK) / 4);
+							when "100" =>
+								next_key_time(0) <= s_current_time - ((y - UNDERBLOCK) / 4);
+							when others =>
+						end case;
+					end if;
 				end if;
+			else
+				next_key_time(3) <= -5;
+				next_key_time(2) <= -5;
+				next_key_time(1) <= -5;
+				next_key_time(0) <= -5;
 			end if;
 			--计算当前屏输出
 			if x >= 0 and x < 640 and y >= 0 and y < 480 then
