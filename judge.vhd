@@ -88,24 +88,100 @@ begin
 				else
 					cur_score <= cur_score;
 					result <= 0;
+					key_state(0) <= '1';
 				end if;
 			end if;
 			if (rising_edge(key_state(1))) then
-				if ((current_time_ms < next_key_time_ms(1) and next_key_time_ms(1) - current_time_ms < max_delay_ms) 
-				or (current_time_ms > next_key_time_ms(1) and current_time_ms - next_key_time_ms(1) < max_delay_ms)) then
-					cur_score <= cur_score + 300;
+				if (key_state(1) = '0') then
+					if ((current_time_ms < next_key_time_ms(1) and next_key_time_ms(1) - current_time_ms < profect_dalay_ms) 
+					or (current_time_ms > next_key_time_ms(1) and current_time_ms - next_key_time_ms(1) < profect_dalay_ms)) then
+						cur_score <= cur_score + 5;
+						result <= 5;
+						key_state(1) <= '1';
+					else
+						if ((current_time_ms < next_key_time_ms(1) and next_key_time_ms(1) - current_time_ms < great_dalay_ms) 
+						or (current_time_ms > next_key_time_ms(1) and current_time_ms - next_key_time_ms(1) < great_dalay_ms)) then
+							cur_score <= cur_score + 3;
+							result <= 3;
+							key_state(1) <= '1';
+						else
+							if ((current_time_ms < next_key_time_ms(1) and next_key_time_ms(1) - current_time_ms < accept_delay_ms) 
+							or (current_time_ms > next_key_time_ms(1) and current_time_ms - next_key_time_ms(1) < accept_delay_ms)) then
+								cur_score <= cur_score + 1;
+								result <= 1;
+								key_state(1) <= '1';
+							else
+								cur_score <= cur_score;
+								result <= 0;
+								key_state(1) <= '0';
+						end if;
+					end if;
+				else
+					cur_score <= cur_score;
+					result <= 0;
+					key_state(1) <= '1';
 				end if;
 			end if;
 			if (rising_edge(key_state(2))) then
-				if ((current_time_ms < next_key_time_ms(2) and next_key_time_ms(2) - current_time_ms < max_delay_ms) 
-				or (current_time_ms > next_key_time_ms(2) and current_time_ms - next_key_time_ms(2) < max_delay_ms)) then
-					cur_score <= cur_score + 300;
+				if (key_state(2) = '0') then
+					if ((current_time_ms < next_key_time_ms(2) and next_key_time_ms(2) - current_time_ms < profect_dalay_ms) 
+					or (current_time_ms > next_key_time_ms(2) and current_time_ms - next_key_time_ms(2) < profect_dalay_ms)) then
+						cur_score <= cur_score + 5;
+						result <= 5;
+						key_state(2) <= '1';
+					else
+						if ((current_time_ms < next_key_time_ms(2) and next_key_time_ms(2) - current_time_ms < great_dalay_ms) 
+						or (current_time_ms > next_key_time_ms(2) and current_time_ms - next_key_time_ms(2) < great_dalay_ms)) then
+							cur_score <= cur_score + 3;
+							result <= 3;
+							key_state(2) <= '1';
+						else
+							if ((current_time_ms < next_key_time_ms(2) and next_key_time_ms(2) - current_time_ms < accept_delay_ms) 
+							or (current_time_ms > next_key_time_ms(2) and current_time_ms - next_key_time_ms(2) < accept_delay_ms)) then
+								cur_score <= cur_score + 1;
+								result <= 1;
+								key_state(2) <= '1';
+							else
+								cur_score <= cur_score;
+								result <= 0;
+								key_state(2) <= '0';
+						end if;
+					end if;
+				else
+					cur_score <= cur_score;
+					result <= 0;
+					key_state(2) <= '1';
 				end if;
 			end if;
 			if (rising_edge(key_state(3))) then
-				if ((current_time_ms < next_key_time_ms(3) and next_key_time_ms(3) - current_time_ms < max_delay_ms) 
-				or (current_time_ms > next_key_time_ms(3) and current_time_ms - next_key_time_ms(3) < max_delay_ms)) then
-					cur_score <= cur_score + 300;
+				if (key_state(3) = '0') then
+					if ((current_time_ms < next_key_time_ms(3) and next_key_time_ms(3) - current_time_ms < profect_dalay_ms) 
+					or (current_time_ms > next_key_time_ms(3) and current_time_ms - next_key_time_ms(3) < profect_dalay_ms)) then
+						cur_score <= cur_score + 5;
+						result <= 5;
+						key_state(3) <= '1';
+					else
+						if ((current_time_ms < next_key_time_ms(3) and next_key_time_ms(3) - current_time_ms < great_dalay_ms) 
+						or (current_time_ms > next_key_time_ms(3) and current_time_ms - next_key_time_ms(3) < great_dalay_ms)) then
+							cur_score <= cur_score + 3;
+							result <= 3;
+							key_state(3) <= '1';
+						else
+							if ((current_time_ms < next_key_time_ms(3) and next_key_time_ms(3) - current_time_ms < accept_delay_ms) 
+							or (current_time_ms > next_key_time_ms(3) and current_time_ms - next_key_time_ms(3) < accept_delay_ms)) then
+								cur_score <= cur_score + 1;
+								result <= 1;
+								key_state(3) <= '1';
+							else
+								cur_score <= cur_score;
+								result <= 0;
+								key_state(3) <= '0';
+						end if;
+					end if;
+				else
+					cur_score <= cur_score;
+					result <= 0;
+					key_state(2) <= '1';
 				end if;
 			end if;
 		end if;
