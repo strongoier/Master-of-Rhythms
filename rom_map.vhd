@@ -160,7 +160,7 @@ END SYN;
 -- Retrieval info: CONNECT: q 0 0 3 0 @q_a 0 0 3 0
 -- Retrieval info: GEN_FILE: TYPE_NORMAL rom_map.vhd TRUE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL rom_map.inc FALSE
--- Retrieval info: GEN_FILE: TYPE_NORMAL rom_map.cmp TRUE
+-- Retrieval info: GEN_FILE: TYPE_NORMAL rom_map.cmp FALSE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL rom_map.bsf FALSE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL rom_map_inst.vhd FALSE
 -- Retrieval info: LIB_FILE: altera_mf

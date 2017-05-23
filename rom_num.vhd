@@ -85,7 +85,7 @@ BEGIN
 	GENERIC MAP (
 		clock_enable_input_a => "BYPASS",
 		clock_enable_output_a => "BYPASS",
-		init_file => "rom_num.mif",
+		init_file => "../rom_num.mif",
 		intended_device_family => "Cyclone II",
 		lpm_hint => "ENABLE_RUNTIME_MOD=NO",
 		lpm_type => "altsyncram",
@@ -160,7 +160,7 @@ END SYN;
 -- Retrieval info: CONNECT: q 0 0 1 0 @q_a 0 0 1 0
 -- Retrieval info: GEN_FILE: TYPE_NORMAL rom_num.vhd TRUE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL rom_num.inc FALSE
--- Retrieval info: GEN_FILE: TYPE_NORMAL rom_num.cmp TRUE
+-- Retrieval info: GEN_FILE: TYPE_NORMAL rom_num.cmp FALSE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL rom_num.bsf FALSE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL rom_num_inst.vhd FALSE
 -- Retrieval info: LIB_FILE: altera_mf
