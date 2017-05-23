@@ -10,6 +10,7 @@ entity master_of_rhythms is --主模块
 		reset: in std_logic; --重置输入
 		keyboard_data: in std_logic; --键盘数据输入
 		keyboard_clk: in std_logic; --键盘时钟输入
+		rx: in std_logic; --串口数据输入
 		hs: out std_logic; --VGA行同步信号输出
 		vs: out std_logic; --VGA场同步信号输出
 		red: out std_logic_vector(2 downto 0); --VGA红色分量输出
@@ -89,13 +90,25 @@ architecture bhv of master_of_rhythms is
 			display: out std_logic_vector(6 downto 0) --不带译码器的数码管输出
 		);
 	end component;
+	component serial is --串口模块
+		generic(
+			bit_num: integer := 8 --每次接受数据的位数
+		);
+		port(
+			bclk: in std_logic; --波特率16倍时钟，近似9600*16Hz
+			rxd: in std_logic; --串口接受数据信号
+			rx_ready: out std_logic; --成功接受新数据
+			rx_data: out std_logic_vector(7 downto 0) --输出接受数据
+		);
+	end component;
 	component judge is --判定模块
 		generic (
-			accept_delay: integer := 5;
-			great_dalay: integer := 3;
+			accept_delay: integer := 4;
+			great_dalay: integer := 2;
 			profect_dalay: integer := 1
 		);
 		port (
+			fclk : in std_logic; --扫描时钟
 			reset: in std_logic; --重置信号
 			next_key_time: in array_int_4; --下一待按键时刻（单位0.01秒）
 			key_state: in std_logic_vector(3 downto 0); --按键状态
@@ -116,10 +129,13 @@ architecture bhv of master_of_rhythms is
 	signal key_state_p2: std_logic_vector(3 downto 0); --玩家2按键状态
 	signal clk_5M: std_logic; --5MHz时钟
 	signal clk_25M: std_logic; --25MHz时钟
+	signal clk_s: std_logic; --串口时钟
 	signal q_pic: std_logic_vector(0 downto 0); --读取图片ROM
 	signal q_map: std_logic_vector(2 downto 0); --读取曲谱ROM
 	signal address_pic: std_logic_vector(13 downto 0); --读取图片ROM地址
 	signal address_map: std_logic_vector(14 downto 0); --读取曲谱ROM地址
+	signal rx_ready: std_logic; --串口成功接受新数据
+	signal rx_data: std_logic_vector(7 downto 0); --串口接受数据
 begin
 	d7: digital_7 port map("0000" + reset, display_7);
 	d6: digital_7 port map("0000" + start, display_6);
@@ -138,20 +154,42 @@ begin
 	--d0: digital_7 port map("0000" + key_state_p1(0), display_0);
 	div5M: clk_divider generic map(20) port map(clk_100M, clk_5M);
 	div25M: clk_divider generic map(4) port map(clk_100M, clk_25M);
+	div_s: clk_divider generic map(651) port map(clk_100M, clk_s);
 	kb: keyboard port map(main_state, keyboard_data, keyboard_clk, clk_5M, key_state_p1, key_state_p2);
 	v: vga port map(main_state, clk_25M, current_time, score_p1, score_p2, result_p1, result_p2, key_state_p1, key_state_p2, q_pic, q_map, hs, vs, red, green, blue, address_pic, address_map, next_key_time);
 	rm: rom_map port map(address_map, clk_100M, q_map);
 	rn: rom_num port map(address_pic, clk_100M, q_pic);
-	j2: judge port map(reset, next_key_time, key_state_p2, current_time, score_p2, result_p2);
+	s: serial port map(clk_s, rx, rx_ready, rx_data);
+	j2: judge port map(clk_100M, reset, next_key_time, key_state_p2, current_time, score_p2, result_p2);
+
 
 	process(clk_100M) --控制进程
 	begin
-		if reset = '0' then
-			main_state <= READY;
-			count_time <= 0;
-			current_time <= 0;
-		elsif rising_edge(clk_100M) then
-			if main_state = READY and start = '0' then
+--		if reset = '0' then
+--			main_state <= READY;
+--			count_time <= 0;
+--			current_time <= 0;
+--		elsif rising_edge(clk_100M) then
+--			if main_state = READY and start = '0' then
+--				main_state <= RUN;
+--			elsif main_state = RUN then
+--				if count_time = 999999 then
+--					count_time <= 0;
+--					current_time <= current_time + 1;
+--					if current_time = 17999 then
+--						main_state <= STOP;
+--					end if;
+--				else
+--					count_time <= count_time + 1;
+--				end if;
+--			end if;
+--		end if;
+		if rising_edge(clk_100M) then
+			if rx_ready = '1' and rx_data = 114 then
+				main_state <= READY;
+				count_time <= 0;
+				current_time <= 0;
+			elsif rx_ready = '1' and rx_data = 115 and main_state = READY then
 				main_state <= RUN;
 			elsif main_state = RUN then
 				if count_time = 999999 then
