@@ -53,17 +53,17 @@ architecture bhv of vga is
 	constant SCORE_GREEN: std_logic_vector(2 downto 0) := "111";
 	constant SCORE_BLUE: std_logic_vector(2 downto 0) := "111";
 	constant GET_5_RED: std_logic_vector(2 downto 0) := "111"; --结果5颜色
-	constant GET_5_GREEN: std_logic_vector(2 downto 0) := "111";
-	constant GET_5_BLUE: std_logic_vector(2 downto 0) := "111";
-	constant GET_3_RED: std_logic_vector(2 downto 0) := "111"; --结果3颜色
-	constant GET_3_GREEN: std_logic_vector(2 downto 0) := "111";
+	constant GET_5_GREEN: std_logic_vector(2 downto 0) := "101";
+	constant GET_5_BLUE: std_logic_vector(2 downto 0) := "000";
+	constant GET_3_RED: std_logic_vector(2 downto 0) := "001"; --结果3颜色
+	constant GET_3_GREEN: std_logic_vector(2 downto 0) := "011";
 	constant GET_3_BLUE: std_logic_vector(2 downto 0) := "111";
-	constant GET_1_RED: std_logic_vector(2 downto 0) := "111"; --结果1颜色
-	constant GET_1_GREEN: std_logic_vector(2 downto 0) := "111";
-	constant GET_1_BLUE: std_logic_vector(2 downto 0) := "111";
-	constant GET_0_RED: std_logic_vector(2 downto 0) := "111"; --结果0颜色
-	constant GET_0_GREEN: std_logic_vector(2 downto 0) := "111";
-	constant GET_0_BLUE: std_logic_vector(2 downto 0) := "111";
+	constant GET_1_RED: std_logic_vector(2 downto 0) := "010"; --结果1颜色
+	constant GET_1_GREEN: std_logic_vector(2 downto 0) := "101";
+	constant GET_1_BLUE: std_logic_vector(2 downto 0) := "010";
+	constant GET_0_RED: std_logic_vector(2 downto 0) := "011"; --结果0颜色
+	constant GET_0_GREEN: std_logic_vector(2 downto 0) := "011";
+	constant GET_0_BLUE: std_logic_vector(2 downto 0) := "011";
 	--大小设定
 	constant BLANK_WIDTH: integer := 65; --两侧空白宽度
 	constant LINE_WIDTH: integer := 2; --分割线宽度
@@ -71,7 +71,7 @@ architecture bhv of vga is
 	constant DIGIT_WIDTH: integer := 20; --数字宽度
 	constant DIGIT_HEIGHT: integer := 30; --数字高度
 	constant KEY_HEIGHT: integer := 4; --键高度
-	constant CHECK_HEIGHT: integer := KEY_HEIGHT * 4; --暗判高度
+	constant CHECK_HEIGHT: integer := KEY_HEIGHT * 12; --暗判高度
 	--位置设定（横）
 	constant BLANK_LEFT: integer := 0; --左侧空白起始位置
 	constant LINE_1: integer := BLANK_WIDTH; --第一条分割线起始位置
@@ -89,6 +89,7 @@ architecture bhv of vga is
 	constant DIGIT_3: integer := DIGIT_2 + DIGIT_WIDTH; --十位起始位置
 	constant DIGIT_4: integer := DIGIT_3 + DIGIT_WIDTH; --个位起始位置
 	constant BLANK_RIGHT: integer := DIGIT_4 + DIGIT_WIDTH; --右侧空白起始位置
+	constant MID: integer := 320; --中间位置
 	--位置设定（纵）
 	constant GOAL: integer := 380; --目标键位置
 	constant UNDERBLOCK: integer := GOAL + KEY_HEIGHT; --下方块位置
@@ -175,6 +176,28 @@ begin
 			if nx >= DIGIT_4 and nx < BLANK_RIGHT then --个位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
 					address_pic <= conv_std_logic_vector(s_score_p2 mod 10, 4) & conv_std_logic_vector(nx - DIGIT_4, 5) & conv_std_logic_vector(ny - SCORE, 5);
+				end if;
+			end if;
+			if nx >= MID + DIGIT_1 and nx < MID + DIGIT_2 then --千位
+				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
+					address_pic <= conv_std_logic_vector(s_score_p1 / 1000, 4) & conv_std_logic_vector(nx - MID - DIGIT_1, 5) & conv_std_logic_vector(ny - SCORE, 5);
+				elsif ny >= GOAL and ny < GOAL + DIGIT_HEIGHT then
+					address_pic <= conv_std_logic_vector(s_result_p1, 4) & conv_std_logic_vector(nx - MID - DIGIT_1, 5) & conv_std_logic_vector(ny - GOAL, 5);
+				end if;
+			end if;
+			if nx >= MID + DIGIT_2 and nx < MID + DIGIT_3 then --百位
+				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
+					address_pic <= conv_std_logic_vector(s_score_p1 / 100 mod 10, 4) & conv_std_logic_vector(nx - MID - DIGIT_2, 5) & conv_std_logic_vector(ny - SCORE, 5);
+				end if;
+			end if;
+			if nx >= MID + DIGIT_3 and nx < MID + DIGIT_4 then --十位
+				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
+					address_pic <= conv_std_logic_vector(s_score_p1 / 10 mod 10, 4) & conv_std_logic_vector(nx - MID - DIGIT_3, 5) & conv_std_logic_vector(ny - SCORE, 5);
+				end if;
+			end if;
+			if nx >= MID + DIGIT_4 and nx < MID + BLANK_RIGHT then --个位
+				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
+					address_pic <= conv_std_logic_vector(s_score_p1 mod 10, 4) & conv_std_logic_vector(nx - MID - DIGIT_4, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				end if;
 			end if;
 			--计算next_key_time
@@ -459,6 +482,254 @@ begin
 						blue <= BLANK_BLUE;
 					end if;
 				elsif x >= BLANK_RIGHT and x < 320 then --右侧空白
+					red <= BLANK_RED;
+					green <= BLANK_GREEN;
+					blue <= BLANK_BLUE;
+				elsif x >= MID + BLANK_LEFT and x < MID + LINE_1 then --左侧空白
+					red <= BLANK_RED;
+					green <= BLANK_GREEN;
+					blue <= BLANK_BLUE;
+				elsif x >= MID + LINE_1 and x < MID + CHANNEL_1 then --第一条分割线
+					red <= LINE_RED;
+					green <= LINE_GREEN;
+					blue <= LINE_BLUE;
+				elsif x >= MID + CHANNEL_1 and x < MID + LINE_2 then --第一道
+					if y >= 0 and y < GOAL then
+						if q_map = "001" then
+							red <= CHANNEL_14_RED;
+							green <= CHANNEL_14_GREEN;
+							blue <= CHANNEL_14_BLUE;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					elsif y >= GOAL and y < UNDERBLOCK then
+						if s_key_state_p1(3) = '1' then
+							red <= PRESS_RED;
+							green <= PRESS_GREEN;
+							blue <= PRESS_BLUE;
+						else
+							red <= GOAL_RED;
+							green <= GOAL_GREEN;
+							blue <= GOAL_BLUE;
+						end if;
+					else
+						if s_key_state_p1(3) = '1' then
+							red <= PRESS_RED;
+							green <= PRESS_GREEN;
+							blue <= PRESS_BLUE;
+						else
+							red <= CHANNEL_14_RED;
+							green <= CHANNEL_14_GREEN;
+							blue <= CHANNEL_14_BLUE;
+						end if;
+					end if;
+				elsif x >= MID + LINE_2 and x < MID + CHANNEL_2 then --第二条分割线
+					red <= LINE_RED;
+					green <= LINE_GREEN;
+					blue <= LINE_BLUE;
+				elsif x >= MID + CHANNEL_2 and x < MID + LINE_3 then --第二道
+					if y >= 0 and y < GOAL then
+						if q_map = "010" then
+							red <= CHANNEL_23_RED;
+							green <= CHANNEL_23_GREEN;
+							blue <= CHANNEL_23_BLUE;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					elsif y >= GOAL and y < UNDERBLOCK then
+						if s_key_state_p1(2) = '1' then
+							red <= PRESS_RED;
+							green <= PRESS_GREEN;
+							blue <= PRESS_BLUE;
+						else
+							red <= GOAL_RED;
+							green <= GOAL_GREEN;
+							blue <= GOAL_BLUE;
+						end if;
+					else
+						if s_key_state_p1(2) = '1' then
+							red <= PRESS_RED;
+							green <= PRESS_GREEN;
+							blue <= PRESS_BLUE;
+						else
+							red <= CHANNEL_23_RED;
+							green <= CHANNEL_23_GREEN;
+							blue <= CHANNEL_23_BLUE;
+						end if;
+					end if;
+				elsif x >= MID + LINE_3 and x < MID + CHANNEL_3 then --第三条分割线
+					red <= LINE_RED;
+					green <= LINE_GREEN;
+					blue <= LINE_BLUE;
+				elsif x >= MID + CHANNEL_3 and x < MID + LINE_4 then --第三道
+					if y >= 0 and y < GOAL then
+						if q_map = "011" then
+							red <= CHANNEL_23_RED;
+							green <= CHANNEL_23_GREEN;
+							blue <= CHANNEL_23_BLUE;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					elsif y >= GOAL and y < UNDERBLOCK then
+						if s_key_state_p1(1) = '1' then
+							red <= PRESS_RED;
+							green <= PRESS_GREEN;
+							blue <= PRESS_BLUE;
+						else
+							red <= GOAL_RED;
+							green <= GOAL_GREEN;
+							blue <= GOAL_BLUE;
+						end if;
+					else
+						if s_key_state_p1(1) = '1' then
+							red <= PRESS_RED;
+							green <= PRESS_GREEN;
+							blue <= PRESS_BLUE;
+						else
+							red <= CHANNEL_23_RED;
+							green <= CHANNEL_23_GREEN;
+							blue <= CHANNEL_23_BLUE;
+						end if;
+					end if;
+				elsif x >= MID + LINE_4 and x < MID + CHANNEL_4 then --第四条分割线
+					red <= LINE_RED;
+					green <= LINE_GREEN;
+					blue <= LINE_BLUE;
+				elsif x >= MID + CHANNEL_4 and x < MID + LINE_5 then --第四道
+					if y >= 0 and y < GOAL then
+						if q_map = "100" then
+							red <= CHANNEL_14_RED;
+							green <= CHANNEL_14_GREEN;
+							blue <= CHANNEL_14_BLUE;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					elsif y >= GOAL and y < UNDERBLOCK then
+						if s_key_state_p1(0) = '1' then
+							red <= PRESS_RED;
+							green <= PRESS_GREEN;
+							blue <= PRESS_BLUE;
+						else
+							red <= GOAL_RED;
+							green <= GOAL_GREEN;
+							blue <= GOAL_BLUE;
+						end if;
+					else
+						if s_key_state_p1(0) = '1' then
+							red <= PRESS_RED;
+							green <= PRESS_GREEN;
+							blue <= PRESS_BLUE;
+						else
+							red <= CHANNEL_14_RED;
+							green <= CHANNEL_14_GREEN;
+							blue <= CHANNEL_14_BLUE;
+						end if;
+					end if;
+				elsif x >= MID + LINE_5 and x < MID + CHANNEL_5 then --第五条分割线
+					red <= LINE_RED;
+					green <= LINE_GREEN;
+					blue <= LINE_BLUE;
+				elsif x >= MID + CHANNEL_5 and x < MID + DIGIT_1 then --第五道（空白）
+					red <= BLANK_RED;
+					green <= BLANK_GREEN;
+					blue <= BLANK_BLUE;
+				elsif x >= MID + DIGIT_1 and x < MID + DIGIT_2 then --千位
+					if y >= SCORE and y < SCORE + DIGIT_HEIGHT then
+						if q_pic = "1" then
+							red <= SCORE_RED;
+							green <= SCORE_GREEN;
+							blue <= SCORE_BLUE;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					elsif y >= GOAL and y < GOAL + DIGIT_HEIGHT then
+						if q_pic = "1" then
+							if s_result_p1 = 5 then
+								red <= GET_5_RED;
+								green <= GET_5_GREEN;
+								blue <= GET_5_BLUE;
+							elsif s_result_p1 = 3 then
+								red <= GET_3_RED;
+								green <= GET_3_GREEN;
+								blue <= GET_3_BLUE;
+							elsif s_result_p1 = 1 then
+								red <= GET_1_RED;
+								green <= GET_1_GREEN;
+								blue <= GET_1_BLUE;
+							else
+								red <= GET_0_RED;
+								green <= GET_0_GREEN;
+								blue <= GET_0_BLUE;
+							end if;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					else
+						red <= BLANK_RED;
+						green <= BLANK_GREEN;
+						blue <= BLANK_BLUE;
+					end if;
+				elsif x >= MID + DIGIT_2 and x < MID + DIGIT_3 then --百位
+					if y >= SCORE and y < SCORE + DIGIT_HEIGHT then
+						if q_pic = "1" then
+							red <= SCORE_RED;
+							green <= SCORE_GREEN;
+							blue <= SCORE_BLUE;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					else
+						red <= BLANK_RED;
+						green <= BLANK_GREEN;
+						blue <= BLANK_BLUE;
+					end if;
+				elsif x >= MID + DIGIT_3 and x < MID + DIGIT_4 then --十位
+					if y >= SCORE and y < SCORE + DIGIT_HEIGHT then
+						if q_pic = "1" then
+							red <= SCORE_RED;
+							green <= SCORE_GREEN;
+							blue <= SCORE_BLUE;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					else
+						red <= BLANK_RED;
+						green <= BLANK_GREEN;
+						blue <= BLANK_BLUE;
+					end if;
+				elsif x >= MID + DIGIT_4 and x < MID + BLANK_RIGHT then --个位
+					if y >= SCORE and y < SCORE + DIGIT_HEIGHT then
+						if q_pic = "1" then
+							red <= SCORE_RED;
+							green <= SCORE_GREEN;
+							blue <= SCORE_BLUE;
+						else
+							red <= BLANK_RED;
+							green <= BLANK_GREEN;
+							blue <= BLANK_BLUE;
+						end if;
+					else
+						red <= BLANK_RED;
+						green <= BLANK_GREEN;
+						blue <= BLANK_BLUE;
+					end if;
+				elsif x >= MID + BLANK_RIGHT and x < 640 then --右侧空白
 					red <= BLANK_RED;
 					green <= BLANK_GREEN;
 					blue <= BLANK_BLUE;

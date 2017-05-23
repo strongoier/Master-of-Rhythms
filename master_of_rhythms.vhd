@@ -135,11 +135,12 @@ architecture bhv of master_of_rhythms is
 	signal rx_ready: std_logic; --串口成功接受新数据
 	signal rx_data: std_logic_vector(7 downto 0); --串口接受数据
 begin
-	d4: digital_7 port map("0000" + current_time / 10000, display_4);
-	d3: digital_7 port map("0000" + current_time / 1000 mod 10, display_3);
-	d2: digital_7 port map("0000" + current_time / 100 mod 10, display_2);
-	d1: digital_7 port map("0000" + current_time / 10 mod 10, display_1);
-	d0: digital_7 port map("0000" + current_time mod 10, display_0);
+--	d4: digital_7 port map("0000" + current_time / 10000, display_4);
+--	d3: digital_7 port map("0000" + current_time / 1000 mod 10, display_3);
+--	d2: digital_7 port map("0000" + current_time / 100 mod 10, display_2);
+--	d1: digital_7 port map("0000" + current_time / 10 mod 10, display_1);
+--	d0: digital_7 port map("0000" + current_time mod 10, display_0);
+	
 	--d7: digital_7 port map("0000" + key_state_p2(3), display_7);
 	--d6: digital_7 port map("0000" + key_state_p2(2), display_6);
 	--d5: digital_7 port map("0000" + key_state_p2(1), display_5);
@@ -156,8 +157,8 @@ begin
 	rm: rom_map port map(address_map, clk_100M, q_map);
 	rn: rom_num port map(address_pic, clk_100M, q_pic);
 	s: serial port map(clk_s, rx, rx_ready, rx_data);
-	j2: judge port map(main_state, clk_100M, next_key_time, key_state_p2, current_time, score_p2, result_p2);
-
+	j2: judge generic map(12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p2, current_time, score_p2, result_p2);
+	j1: judge generic map(12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p1, current_time, score_p1, result_p1);
 
 	process(clk_100M) --控制进程
 	begin
