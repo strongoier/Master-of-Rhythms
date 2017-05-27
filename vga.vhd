@@ -10,10 +10,10 @@ entity vga is --VGA模块
 		main_state: in main_state_type; --主模块状态输入
 		clk_25M: in std_logic; --25MHz时钟输入
 		current_time: in integer; --当前时刻（单位0.01秒）输入
-		score_p1: in integer; --玩家1得分输入
-		score_p2: in integer; --玩家2得分输入
-		result_p1: in integer; --玩家1操作结果输入
-		result_p2: in integer; --玩家2操作结果输入
+		score_p1: in std_logic_vector(15 downto 0); --玩家1得分输入
+		score_p2: in std_logic_vector(15 downto 0); --玩家2得分输入
+		result_p1: in std_logic_vector(3 downto 0); --玩家1操作结果输入
+		result_p2: in std_logic_vector(3 downto 0); --玩家2操作结果输入
 		key_state_p1: in std_logic_vector(3 downto 0); --玩家1按键状态输入
 		key_state_p2: in std_logic_vector(3 downto 0); --玩家2按键状态输入
 		q_pic: in std_logic_vector(0 downto 0); --读取图片ROM输入
@@ -55,12 +55,12 @@ architecture bhv of vga is
 	constant GET_5_RED: std_logic_vector(2 downto 0) := "111"; --结果5颜色
 	constant GET_5_GREEN: std_logic_vector(2 downto 0) := "101";
 	constant GET_5_BLUE: std_logic_vector(2 downto 0) := "000";
-	constant GET_3_RED: std_logic_vector(2 downto 0) := "001"; --结果3颜色
-	constant GET_3_GREEN: std_logic_vector(2 downto 0) := "011";
-	constant GET_3_BLUE: std_logic_vector(2 downto 0) := "111";
-	constant GET_1_RED: std_logic_vector(2 downto 0) := "010"; --结果1颜色
-	constant GET_1_GREEN: std_logic_vector(2 downto 0) := "101";
-	constant GET_1_BLUE: std_logic_vector(2 downto 0) := "010";
+	constant GET_3_RED: std_logic_vector(2 downto 0) := "010"; --结果3颜色
+	constant GET_3_GREEN: std_logic_vector(2 downto 0) := "101";
+	constant GET_3_BLUE: std_logic_vector(2 downto 0) := "010";
+	constant GET_1_RED: std_logic_vector(2 downto 0) := "001"; --结果1颜色
+	constant GET_1_GREEN: std_logic_vector(2 downto 0) := "011";
+	constant GET_1_BLUE: std_logic_vector(2 downto 0) := "111";
 	constant GET_0_RED: std_logic_vector(2 downto 0) := "011"; --结果0颜色
 	constant GET_0_GREEN: std_logic_vector(2 downto 0) := "011";
 	constant GET_0_BLUE: std_logic_vector(2 downto 0) := "011";
@@ -100,10 +100,10 @@ architecture bhv of vga is
 	signal nx: integer := 1; --下下时刻的x
 	signal ny: integer := 0; --下下时刻的y
 	signal s_current_time: integer; --当前屏当前时刻（单位0.01秒）
-	signal s_score_p1: integer; --当前屏玩家1得分
-	signal s_score_p2: integer; --当前屏玩家2得分
-	signal s_result_p1: integer; --当前屏玩家1操作结果
-	signal s_result_p2: integer; --当前屏玩家2操作结果
+	signal s_score_p1: std_logic_vector(15 downto 0); --当前屏玩家1得分
+	signal s_score_p2: std_logic_vector(15 downto 0); --当前屏玩家2得分
+	signal s_result_p1: std_logic_vector(3 downto 0); --当前屏玩家1操作结果
+	signal s_result_p2: std_logic_vector(3 downto 0); --当前屏玩家2操作结果
 	signal s_key_state_p1: std_logic_vector(3 downto 0); --当前屏玩家1按键状态
 	signal s_key_state_p2: std_logic_vector(3 downto 0); --当前屏玩家2按键状态
 begin
@@ -147,10 +147,10 @@ begin
 			--读取ROM
 			if nx >= CHANNEL_1 and nx < LINE_2 then --第一道
 				if ny >= 0 and ny < UNDERBLOCK then
-					address_map <= "000000000000000" + conv_std_logic_vector(s_current_time + (UNDERBLOCK - ny - 1) / 4, 15);
+					address_map <= "000000000000000" + conv_std_logic_vector(s_current_time + (UNDERBLOCK - ny - 1) / KEY_HEIGHT, 15);
 				elsif ny >= UNDERBLOCK and ny < UNDERBLOCK + CHECK_HEIGHT then
-					if s_current_time >= (ny - UNDERBLOCK) / 4 then
-						address_map <= "000000000000000" + conv_std_logic_vector(s_current_time - (ny - UNDERBLOCK) / 4, 15);
+					if s_current_time >= (ny - UNDERBLOCK) / KEY_HEIGHT then
+						address_map <= "000000000000000" + conv_std_logic_vector(s_current_time - (ny - UNDERBLOCK) / KEY_HEIGHT, 15);
 					else
 						address_map <= "111111111111111";
 					end if;
@@ -158,46 +158,46 @@ begin
 			end if;
 			if nx >= DIGIT_1 and nx < DIGIT_2 then --千位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_score_p2 / 1000, 4) & conv_std_logic_vector(nx - DIGIT_1, 5) & conv_std_logic_vector(ny - SCORE, 5);
+					address_pic <= s_score_p2(15 downto 12) & conv_std_logic_vector(nx - DIGIT_1, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				elsif ny >= GOAL and ny < GOAL + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_result_p2, 4) & conv_std_logic_vector(nx - DIGIT_1, 5) & conv_std_logic_vector(ny - GOAL, 5);
+					address_pic <= s_result_p2 & conv_std_logic_vector(nx - DIGIT_1, 5) & conv_std_logic_vector(ny - GOAL, 5);
 				end if;
 			end if;
 			if nx >= DIGIT_2 and nx < DIGIT_3 then --百位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_score_p2 / 100 mod 10, 4) & conv_std_logic_vector(nx - DIGIT_2, 5) & conv_std_logic_vector(ny - SCORE, 5);
+					address_pic <= s_score_p2(11 downto 8) & conv_std_logic_vector(nx - DIGIT_2, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				end if;
 			end if;
 			if nx >= DIGIT_3 and nx < DIGIT_4 then --十位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_score_p2 / 10 mod 10, 4) & conv_std_logic_vector(nx - DIGIT_3, 5) & conv_std_logic_vector(ny - SCORE, 5);
+					address_pic <= s_score_p2(7 downto 4) & conv_std_logic_vector(nx - DIGIT_3, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				end if;
 			end if;
 			if nx >= DIGIT_4 and nx < BLANK_RIGHT then --个位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_score_p2 mod 10, 4) & conv_std_logic_vector(nx - DIGIT_4, 5) & conv_std_logic_vector(ny - SCORE, 5);
+					address_pic <= s_score_p2(3 downto 0) & conv_std_logic_vector(nx - DIGIT_4, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				end if;
 			end if;
 			if nx >= MID + DIGIT_1 and nx < MID + DIGIT_2 then --千位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_score_p1 / 1000, 4) & conv_std_logic_vector(nx - MID - DIGIT_1, 5) & conv_std_logic_vector(ny - SCORE, 5);
+					address_pic <= s_score_p1(15 downto 12) & conv_std_logic_vector(nx - MID - DIGIT_1, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				elsif ny >= GOAL and ny < GOAL + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_result_p1, 4) & conv_std_logic_vector(nx - MID - DIGIT_1, 5) & conv_std_logic_vector(ny - GOAL, 5);
+					address_pic <= s_result_p1 & conv_std_logic_vector(nx - MID - DIGIT_1, 5) & conv_std_logic_vector(ny - GOAL, 5);
 				end if;
 			end if;
 			if nx >= MID + DIGIT_2 and nx < MID + DIGIT_3 then --百位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_score_p1 / 100 mod 10, 4) & conv_std_logic_vector(nx - MID - DIGIT_2, 5) & conv_std_logic_vector(ny - SCORE, 5);
+					address_pic <= s_score_p1(11 downto 8) & conv_std_logic_vector(nx - MID - DIGIT_2, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				end if;
 			end if;
 			if nx >= MID + DIGIT_3 and nx < MID + DIGIT_4 then --十位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_score_p1 / 10 mod 10, 4) & conv_std_logic_vector(nx - MID - DIGIT_3, 5) & conv_std_logic_vector(ny - SCORE, 5);
+					address_pic <= s_score_p1(7 downto 4) & conv_std_logic_vector(nx - MID - DIGIT_3, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				end if;
 			end if;
 			if nx >= MID + DIGIT_4 and nx < MID + BLANK_RIGHT then --个位
 				if ny >= SCORE and ny < SCORE + DIGIT_HEIGHT then
-					address_pic <= conv_std_logic_vector(s_score_p1 mod 10, 4) & conv_std_logic_vector(nx - MID - DIGIT_4, 5) & conv_std_logic_vector(ny - SCORE, 5);
+					address_pic <= s_score_p1(3 downto 0) & conv_std_logic_vector(nx - MID - DIGIT_4, 5) & conv_std_logic_vector(ny - SCORE, 5);
 				end if;
 			end if;
 			--计算next_key_time
@@ -206,34 +206,34 @@ begin
 					if y >= 0 and y < UNDERBLOCK then
 						case q_map is
 							when "001" =>
-								next_key_time(3) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
+								next_key_time(3) <= s_current_time + ((UNDERBLOCK - y - 1) / KEY_HEIGHT);
 							when "010" =>
-								next_key_time(2) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
+								next_key_time(2) <= s_current_time + ((UNDERBLOCK - y - 1) / KEY_HEIGHT);
 							when "011" =>
-								next_key_time(1) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
+								next_key_time(1) <= s_current_time + ((UNDERBLOCK - y - 1) / KEY_HEIGHT);
 							when "100" =>
-								next_key_time(0) <= s_current_time + ((UNDERBLOCK - y - 1) / 4);
+								next_key_time(0) <= s_current_time + ((UNDERBLOCK - y - 1) / KEY_HEIGHT);
 							when others =>
 						end case;
 					elsif y >= UNDERBLOCK and y < UNDERBLOCK + CHECK_HEIGHT then
 						case q_map is
 							when "001" =>
-								next_key_time(3) <= s_current_time - ((y - UNDERBLOCK) / 4);
+								next_key_time(3) <= s_current_time - ((y - UNDERBLOCK) / KEY_HEIGHT);
 							when "010" =>
-								next_key_time(2) <= s_current_time - ((y - UNDERBLOCK) / 4);
+								next_key_time(2) <= s_current_time - ((y - UNDERBLOCK) / KEY_HEIGHT);
 							when "011" =>
-								next_key_time(1) <= s_current_time - ((y - UNDERBLOCK) / 4);
+								next_key_time(1) <= s_current_time - ((y - UNDERBLOCK) / KEY_HEIGHT);
 							when "100" =>
-								next_key_time(0) <= s_current_time - ((y - UNDERBLOCK) / 4);
+								next_key_time(0) <= s_current_time - ((y - UNDERBLOCK) / KEY_HEIGHT);
 							when others =>
 						end case;
 					end if;
 				end if;
 			else
-				next_key_time(3) <= -5;
-				next_key_time(2) <= -5;
-				next_key_time(1) <= -5;
-				next_key_time(0) <= -5;
+				next_key_time(3) <= -100;
+				next_key_time(2) <= -100;
+				next_key_time(1) <= -100;
+				next_key_time(0) <= -100;
 			end if;
 			--计算当前屏输出
 			if x >= 0 and x < 640 and y >= 0 and y < 480 then
