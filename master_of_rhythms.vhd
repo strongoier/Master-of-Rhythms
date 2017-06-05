@@ -50,10 +50,10 @@ architecture bhv of master_of_rhythms is
 			main_state: in main_state_type; --主模块状态输入
 			clk_25M: in std_logic; --25MHz时钟输入
 			current_time: in integer; --当前时刻（单位0.01秒）输入
-			score_p1: in std_logic_vector(15 downto 0); --玩家1得分输入
-			score_p2: in std_logic_vector(15 downto 0); --玩家2得分输入
-			result_p1: in std_logic_vector(3 downto 0); --玩家1操作结果输入
-			result_p2: in std_logic_vector(3 downto 0); --玩家2操作结果输入
+			score_p1: in integer; --玩家1得分输入
+			score_p2: in integer; --玩家2得分输入
+			result_p1: in integer; --玩家1操作结果输入
+			result_p2: in integer; --玩家2操作结果输入
 			key_state_p1: in std_logic_vector(3 downto 0); --玩家1按键状态输入
 			key_state_p2: in std_logic_vector(3 downto 0); --玩家2按键状态输入
 			q_pic: in std_logic_vector(0 downto 0); --读取图片ROM输入
@@ -119,10 +119,10 @@ architecture bhv of master_of_rhythms is
 	signal current_time: integer := 0; --当前时刻（单位0.01秒）
 	signal next_key_time: array_int_4; --下一待按键时刻（单位0.01秒）
 	signal count_time: integer := 0; --计时
-	signal score_p1: std_logic_vector(15 downto 0); --玩家1得分
-	signal score_p2: std_logic_vector(15 downto 0); --玩家2得分
-	signal result_p1: std_logic_vector(3 downto 0); --玩家1状态
-	signal result_p2: std_logic_vector(3 downto 0); --玩家2状态
+	signal score_p1: integer; --玩家1得分
+	signal score_p2: integer; --玩家2得分
+	signal result_p1: integer; --玩家1状态
+	signal result_p2: integer; --玩家2状态
 	signal key_state_p1: std_logic_vector(3 downto 0); --玩家1按键状态
 	signal key_state_p2: std_logic_vector(3 downto 0); --玩家2按键状态
 	signal clk_5M: std_logic; --5MHz时钟
@@ -192,7 +192,7 @@ begin
 				if count_time = 999999 then
 					count_time <= 0;
 					current_time <= current_time + 1;
-					if current_time = 10999 then
+					if current_time = 17999 then
 						main_state <= STOP;
 					end if;
 				else
