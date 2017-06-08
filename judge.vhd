@@ -17,8 +17,8 @@ entity judge is --判定模块
 		next_key_time: in array_int_4; --下一待按键时刻（单位0.01秒）
 		key_state: in std_logic_vector(3 downto 0); --按键状态
 		current_time : in integer; --当前时刻（单位0.01秒）
+		total_score: out integer; --总分输出
 		score: out integer; --得分输出
-		total_score: out integer; --百分比输出
 		result: out integer --操作结果输出
 	);
 end judge;
@@ -35,7 +35,9 @@ begin
 	------------------------------------------------------
 	-- 输出当前分数
 	score <= cur_score;
-	-- 输出dang
+	-- 输出当前总分
+	total_score <= cur_total_score;
+	-- 输出当前结果
 	result <= cur_result;
 	------------------------------------------------------
 	-- 扫描、更新
