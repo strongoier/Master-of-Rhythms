@@ -52,18 +52,24 @@ architecture bhv of master_of_rhythms is
 			current_time: in integer; --当前时刻（单位0.01秒）输入
 			score_p1: in integer; --玩家1得分输入
 			score_p2: in integer; --玩家2得分输入
+			percentage_p1: in integer; --玩家1百分比输入
+			percentage_p2: in integer; --玩家2百分比输入
 			result_p1: in integer; --玩家1操作结果输入
 			result_p2: in integer; --玩家2操作结果输入
 			key_state_p1: in std_logic_vector(3 downto 0); --玩家1按键状态输入
 			key_state_p2: in std_logic_vector(3 downto 0); --玩家2按键状态输入
-			q_pic: in std_logic_vector(0 downto 0); --读取图片ROM输入
+			q_background: in std_logic_vector(8 downto 0); --读取背景ROM输入
+			q_score: in std_logic_vector(9 downto 0); --读取得分ROM输入
+			q_result: in std_logic_vector(9 downto 0); --读取结果ROM输入
 			q_map: in std_logic_vector(2 downto 0); --读取曲谱ROM输入
 			hs: out std_logic; --VGA行同步信号输出
 			vs: out std_logic; --VGA场同步信号输出
 			red: out std_logic_vector(2 downto 0); --VGA红色分量输出
 			green: out std_logic_vector(2 downto 0); --VGA绿色分量输出
 			blue: out std_logic_vector(2 downto 0); --VGA蓝色分量输出
-			address_pic: out std_logic_vector(13 downto 0); --读取图片ROM地址输出
+			address_background: out std_logic_vector(15 downto 0); --读取背景ROM地址输出
+			address_score: out std_logic_vector(13 downto 0); --读取得分ROM地址输出
+			address_result: out std_logic_vector(13 downto 0); --读取结果ROM地址输出
 			address_map: out std_logic_vector(14 downto 0); --读取曲谱ROM地址输出
 			next_key_time: out array_int_4 --下一待按键时刻（单位0.01秒）输出
 		);
@@ -75,11 +81,25 @@ architecture bhv of master_of_rhythms is
 			q: out std_logic_vector(2 downto 0) --数据
 		);
 	end component;
-	component rom_num is --数字ROM
+	component rom_background is --背景ROM
+		port(
+			address: in std_logic_vector(15 downto 0); --地址
+			clock: in std_logic; --时钟
+			q: out std_logic_vector(8 downto 0) --数据
+		);
+	end component;
+	component rom_score is --得分ROM
 		port(
 			address: in std_logic_vector(13 downto 0); --地址
 			clock: in std_logic; --时钟
-			q: out std_logic_vector(0 downto 0) --数据
+			q: out std_logic_vector(9 downto 0) --数据
+		);
+	end component;
+	component rom_result is --结果ROM
+		port(
+			address: in std_logic_vector(13 downto 0); --地址
+			clock: in std_logic; --时钟
+			q: out std_logic_vector(9 downto 0) --数据
 		);
 	end component;
 	component digital_7 is --点亮数字人生
@@ -112,6 +132,7 @@ architecture bhv of master_of_rhythms is
 			key_state: in std_logic_vector(3 downto 0); --按键状态
 			current_time : in integer; --当前时刻（单位0.01秒）
 			score: out integer; --得分输出
+			percentage: out integer; --百分比输出
 			result: out integer --操作结果输出
 		);
 	end component;
@@ -121,6 +142,8 @@ architecture bhv of master_of_rhythms is
 	signal count_time: integer := 0; --计时
 	signal score_p1: integer; --玩家1得分
 	signal score_p2: integer; --玩家2得分
+	signal percentage_p1: integer; --玩家1百分比
+	signal percentage_p2: integer; --玩家2百分比
 	signal result_p1: integer; --玩家1状态
 	signal result_p2: integer; --玩家2状态
 	signal key_state_p1: std_logic_vector(3 downto 0); --玩家1按键状态
@@ -128,9 +151,13 @@ architecture bhv of master_of_rhythms is
 	signal clk_5M: std_logic; --5MHz时钟
 	signal clk_25M: std_logic; --25MHz时钟
 	signal clk_s: std_logic; --串口时钟
-	signal q_pic: std_logic_vector(0 downto 0); --读取图片ROM
+	signal q_background: std_logic_vector(8 downto 0); --读取背景ROM
+	signal q_score: std_logic_vector(9 downto 0); --读取得分ROM
+	signal q_result: std_logic_vector(9 downto 0); --读取结果ROM
 	signal q_map: std_logic_vector(2 downto 0); --读取曲谱ROM
-	signal address_pic: std_logic_vector(13 downto 0); --读取图片ROM地址
+	signal address_background: std_logic_vector(15 downto 0); --读取背景ROM地址
+	signal address_score: std_logic_vector(13 downto 0); --读取得分ROM地址
+	signal address_result: std_logic_vector(13 downto 0); --读取结果ROM地址
 	signal address_map: std_logic_vector(14 downto 0); --读取曲谱ROM地址
 	signal rx_ready: std_logic; --串口成功接受新数据
 	signal rx_data: std_logic_vector(7 downto 0); --串口接受数据
@@ -153,12 +180,14 @@ begin
 	div25M: clk_divider generic map(4) port map(clk_100M, clk_25M);
 	div_s: clk_divider generic map(651) port map(clk_100M, clk_s);
 	kb: keyboard port map(main_state, keyboard_data, keyboard_clk, clk_5M, key_state_p1, key_state_p2);
-	v: vga port map(main_state, clk_25M, current_time, score_p1, score_p2, result_p1, result_p2, key_state_p1, key_state_p2, q_pic, q_map, hs, vs, red, green, blue, address_pic, address_map, next_key_time);
+	v: vga port map(main_state, clk_25M, current_time, score_p1, score_p2, percentage_p1, percentage_p2, result_p1, result_p2, key_state_p1, key_state_p2, q_background, q_score, q_result, q_map, hs, vs, red, green, blue, address_background, address_score, address_result, address_map, next_key_time);
 	rm: rom_map port map(address_map, clk_100M, q_map);
-	rn: rom_num port map(address_pic, clk_100M, q_pic);
+	rb: rom_background port map(address_background, clk_100M, q_background);
+	rs: rom_score port map(address_score, clk_100M, q_score);
+	rr: rom_result port map(address_result, clk_100M, q_result);
 	s: serial port map(clk_s, rx, rx_ready, rx_data);
-	j2: judge generic map(12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p2, current_time, score_p2, result_p2);
-	j1: judge generic map(12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p1, current_time, score_p1, result_p1);
+	j2: judge generic map(12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p2, current_time, score_p2, percentage_p2, result_p2);
+	j1: judge generic map(12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p1, current_time, score_p1, percentage_p1, result_p1);
 
 	process(clk_100M) --控制进程
 	begin

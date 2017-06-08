@@ -17,6 +17,7 @@ entity judge is --判定模块
 		key_state: in std_logic_vector(3 downto 0); --按键状态
 		current_time : in integer; --当前时刻（单位0.01秒）
 		score: out integer; --得分输出
+		percentage: out integer; --百分比输出
 		result: out integer --操作结果输出
 	);
 end judge;
