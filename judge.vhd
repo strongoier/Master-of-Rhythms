@@ -6,6 +6,7 @@ use work.types.all;
 
 entity judge is --判定模块
 	generic (
+		miss_delay : integer := 6;
 		accept_delay : integer := 4;
 		great_delay : integer := 2;
 		perfect_delay : integer := 1
@@ -33,6 +34,7 @@ begin
 	------------------------------------------------------
 	-- 输出当前分数
 	score <= cur_score;
+	-- 输出dang
 	result <= cur_result;
 	------------------------------------------------------
 	-- 扫描、更新
@@ -44,10 +46,10 @@ begin
 			cur_result <= 0;
 			cur_judge_state <= "0000";
 			cur_key_state <= "0000";
-			cur_key_time(0) <= -5;
-			cur_key_time(1) <= -5;
-			cur_key_time(2) <= -5;
-			cur_key_time(3) <= -5;
+			cur_key_time(0) <= -100;
+			cur_key_time(1) <= -100;
+			cur_key_time(2) <= -100;
+			cur_key_time(3) <= -100;
 		elsif (main_state = RUN and rising_edge(fclk)) then
 			case cur_index is
 				when "00" =>
