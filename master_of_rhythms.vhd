@@ -13,15 +13,7 @@ entity master_of_rhythms is --主模块
 		vs: out std_logic; --VGA场同步信号输出
 		red: out std_logic_vector(2 downto 0); --VGA红色分量输出
 		green: out std_logic_vector(2 downto 0); --VGA绿色分量输出
-		blue: out std_logic_vector(2 downto 0); --VGA蓝色分量输出
-		display_7: out std_logic_vector(6 downto 0); --调试用数码管输出
-		display_6: out std_logic_vector(6 downto 0); --调试用数码管输出
-		display_5: out std_logic_vector(6 downto 0); --调试用数码管输出
-		display_4: out std_logic_vector(6 downto 0); --调试用数码管输出
-		display_3: out std_logic_vector(6 downto 0); --调试用数码管输出
-		display_2: out std_logic_vector(6 downto 0); --调试用数码管输出
-		display_1: out std_logic_vector(6 downto 0); --调试用数码管输出
-		display_0: out std_logic_vector(6 downto 0) --调试用数码管输出
+		blue: out std_logic_vector(2 downto 0) --VGA蓝色分量输出
 	);
 end master_of_rhythms;
 
@@ -50,10 +42,10 @@ architecture bhv of master_of_rhythms is
 			main_state: in main_state_type; --主模块状态输入
 			clk_25M: in std_logic; --25MHz时钟输入
 			current_time: in integer; --当前时刻（单位0.01秒）输入
+			total_score_p1: in integer; --玩家1总分输入
+			total_score_p2: in integer; --玩家2总分输入
 			score_p1: in integer; --玩家1得分输入
 			score_p2: in integer; --玩家2得分输入
-			percentage_p1: in integer; --玩家1百分比输入
-			percentage_p2: in integer; --玩家2百分比输入
 			result_p1: in integer; --玩家1操作结果输入
 			result_p2: in integer; --玩家2操作结果输入
 			key_state_p1: in std_logic_vector(3 downto 0); --玩家1按键状态输入
@@ -102,12 +94,6 @@ architecture bhv of master_of_rhythms is
 			q: out std_logic_vector(9 downto 0) --数据
 		);
 	end component;
-	component digital_7 is --点亮数字人生
-		port(
-			key: in std_logic_vector(3 downto 0); --数据输入
-			display: out std_logic_vector(6 downto 0) --不带译码器的数码管输出
-		);
-	end component;
 	component serial is --串口模块
 		generic(
 			bit_num: integer := 8 --每次接受数据的位数
@@ -121,6 +107,7 @@ architecture bhv of master_of_rhythms is
 	end component;
 	component judge is --判定模块
 		generic (
+			miss_delay : integer := 6;
 			accept_delay : integer := 4;
 			great_delay : integer := 2;
 			perfect_delay : integer := 1
@@ -131,8 +118,8 @@ architecture bhv of master_of_rhythms is
 			next_key_time: in array_int_4; --下一待按键时刻（单位0.01秒）
 			key_state: in std_logic_vector(3 downto 0); --按键状态
 			current_time : in integer; --当前时刻（单位0.01秒）
+			total_score: out integer; --总分输出
 			score: out integer; --得分输出
-			percentage: out integer; --百分比输出
 			result: out integer --操作结果输出
 		);
 	end component;
@@ -140,10 +127,10 @@ architecture bhv of master_of_rhythms is
 	signal current_time: integer := 0; --当前时刻（单位0.01秒）
 	signal next_key_time: array_int_4; --下一待按键时刻（单位0.01秒）
 	signal count_time: integer := 0; --计时
+	signal total_score_p1: integer; --玩家1总分
+	signal total_score_p2: integer; --玩家2总分
 	signal score_p1: integer; --玩家1得分
 	signal score_p2: integer; --玩家2得分
-	signal percentage_p1: integer; --玩家1百分比
-	signal percentage_p2: integer; --玩家2百分比
 	signal result_p1: integer; --玩家1状态
 	signal result_p2: integer; --玩家2状态
 	signal key_state_p1: std_logic_vector(3 downto 0); --玩家1按键状态
@@ -162,54 +149,21 @@ architecture bhv of master_of_rhythms is
 	signal rx_ready: std_logic; --串口成功接受新数据
 	signal rx_data: std_logic_vector(7 downto 0); --串口接受数据
 begin
---	d4: digital_7 port map("0000" + current_time / 10000, display_4);
---	d3: digital_7 port map("0000" + current_time / 1000 mod 10, display_3);
---	d2: digital_7 port map("0000" + current_time / 100 mod 10, display_2);
---	d1: digital_7 port map("0000" + current_time / 10 mod 10, display_1);
---	d0: digital_7 port map("0000" + current_time mod 10, display_0);
-	
-	--d7: digital_7 port map("0000" + key_state_p2(3), display_7);
-	--d6: digital_7 port map("0000" + key_state_p2(2), display_6);
-	--d5: digital_7 port map("0000" + key_state_p2(1), display_5);
-	--d4: digital_7 port map("0000" + key_state_p2(0), display_4);
-	--d3: digital_7 port map("0000" + key_state_p1(3), display_3);
-	--d2: digital_7 port map("0000" + key_state_p1(2), display_2);
-	--d1: digital_7 port map("0000" + key_state_p1(1), display_1);
-	--d0: digital_7 port map("0000" + key_state_p1(0), display_0);
 	div5M: clk_divider generic map(20) port map(clk_100M, clk_5M);
 	div25M: clk_divider generic map(4) port map(clk_100M, clk_25M);
 	div_s: clk_divider generic map(651) port map(clk_100M, clk_s);
 	kb: keyboard port map(main_state, keyboard_data, keyboard_clk, clk_5M, key_state_p1, key_state_p2);
-	v: vga port map(main_state, clk_25M, current_time, score_p1, score_p2, percentage_p1, percentage_p2, result_p1, result_p2, key_state_p1, key_state_p2, q_background, q_score, q_result, q_map, hs, vs, red, green, blue, address_background, address_score, address_result, address_map, next_key_time);
+	v: vga port map(main_state, clk_25M, current_time, total_score_p1, total_score_p2, score_p1, score_p2, result_p1, result_p2, key_state_p1, key_state_p2, q_background, q_score, q_result, q_map, hs, vs, red, green, blue, address_background, address_score, address_result, address_map, next_key_time);
 	rm: rom_map port map(address_map, clk_100M, q_map);
 	rb: rom_background port map(address_background, clk_100M, q_background);
 	rs: rom_score port map(address_score, clk_100M, q_score);
 	rr: rom_result port map(address_result, clk_100M, q_result);
 	s: serial port map(clk_s, rx, rx_ready, rx_data);
-	j2: judge generic map(12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p2, current_time, score_p2, percentage_p2, result_p2);
-	j1: judge generic map(12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p1, current_time, score_p1, percentage_p1, result_p1);
+	j2: judge generic map(16, 12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p2, current_time, total_score_p2, score_p2, result_p2);
+	j1: judge generic map(16, 12, 8, 4) port map(main_state, clk_100M, next_key_time, key_state_p1, current_time, total_score_p1, score_p1, result_p1);
 
 	process(clk_100M) --控制进程
 	begin
---		if reset = '0' then
---			main_state <= READY;
---			count_time <= 0;
---			current_time <= 0;
---		elsif rising_edge(clk_100M) then
---			if main_state = READY and start = '0' then
---				main_state <= RUN;
---			elsif main_state = RUN then
---				if count_time = 999999 then
---					count_time <= 0;
---					current_time <= current_time + 1;
---					if current_time = 17999 then
---						main_state <= STOP;
---					end if;
---				else
---					count_time <= count_time + 1;
---				end if;
---			end if;
---		end if;
 		if rising_edge(clk_100M) then
 			if rx_ready = '1' and rx_data = 114 then
 				main_state <= READY;
@@ -221,7 +175,7 @@ begin
 				if count_time = 999999 then
 					count_time <= 0;
 					current_time <= current_time + 1;
-					if current_time = 17999 then
+					if current_time = 21599 then
 						main_state <= STOP;
 					end if;
 				else

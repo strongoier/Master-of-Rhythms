@@ -63,7 +63,7 @@ begin
 						cur_result <= cur_result;
 						cur_key_state(0) <= cur_key_state(0);
 						if (cur_key_time(0) = next_key_time(0)) then -- 如果没有下一个按键到来
-						cur_judge_state(0) <= cur_judge_state(0); -- 判断状态与当前按键时间不变 
+							cur_judge_state(0) <= cur_judge_state(0); -- 判断状态与当前按键时间不变 
 							cur_key_time(0) <= cur_key_time(0);
 						else -- 如果下一个按键到来
 							cur_total_score <= cur_total_score + 5;
